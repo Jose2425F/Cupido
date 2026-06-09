@@ -7,113 +7,31 @@
 <title>Cupido IA · Novaflow</title>
 <meta property="og:title" content="Cupido IA 💘" />
 <meta property="og:description" content="Sube tu foto y deja que la IA te enamore... o te diga la verdad sin filtros 😏" />
-<style>
-  :root { --rosa:#fb7185; --rosa2:#f43f5e; --violeta:#a78bfa; --cian:#38bdf8; --naranja:#fb923c; --verde:#34d399; --base:#0a0612; --texto:#f3e8ff; }
-  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
-  html,body { min-height:100%; }
-  body { background:var(--base); color:var(--texto);
-    font-family:system-ui,-apple-system,"Segoe UI",Inter,sans-serif;
-    background:radial-gradient(130% 80% at 50% -10%, #2a0f3d 0%, #0a0612 55%); overflow-x:hidden; }
-
-  .bg-hearts { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
-  .bg-hearts span { position:absolute; bottom:-40px; font-size:20px; opacity:0; animation:subir linear infinite; }
-  @keyframes subir { 0%{ transform:translateY(0) rotate(0); opacity:0 } 10%{opacity:.5} 90%{opacity:.5} 100%{ transform:translateY(-110vh) rotate(360deg); opacity:0 } }
-
-  #app { position:relative; z-index:1; max-width:540px; margin:0 auto; min-height:100dvh;
-    display:flex; flex-direction:column; padding:22px 16px calc(28px + env(safe-area-inset-bottom)); }
-
-  header { text-align:center; margin-bottom:18px; }
-  header .logo { font-size:13px; letter-spacing:3px; text-transform:uppercase; opacity:.6; font-weight:700; }
-  header h1 { font-size:34px; font-weight:900; letter-spacing:.5px; margin-top:2px;
-    background:linear-gradient(90deg,var(--rosa),var(--violeta),var(--cian)); -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 4px 20px rgba(167,139,250,.35)); }
-  header p { font-size:14px; opacity:.78; margin-top:6px; }
-
-  .card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-    border-radius:26px; backdrop-filter:blur(10px); box-shadow:0 20px 60px rgba(0,0,0,.4); }
-
-  #zona { position:relative; aspect-ratio:4/5; border-radius:26px; overflow:hidden; cursor:pointer; transition:.2s; }
-  #zona:active { transform:scale(.99); }
-  #foto { width:100%; height:100%; object-fit:cover; display:none; }
-  #ph { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; opacity:.85; }
-  #ph .em { font-size:60px; animation:lat 1.8s ease-in-out infinite; }
-  @keyframes lat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
-  #ph p { margin-top:14px; font-size:15px; font-weight:700; }
-  #ph small { margin-top:4px; font-size:12px; opacity:.6; }
-  #zona .glow { position:absolute; inset:0; border-radius:26px; pointer-events:none; box-shadow:inset 0 0 0 2px rgba(167,139,250,0); transition:.3s; }
-  #zona.tiene .glow { box-shadow:inset 0 0 0 2px rgba(167,139,250,.5); }
-
-  #tono { display:flex; gap:8px; margin-top:16px; background:rgba(255,255,255,.05); padding:5px; border-radius:18px; }
-  #tono button { flex:1; border:0; background:transparent; color:var(--texto); opacity:.65; font-size:14.5px; font-weight:800; padding:13px 8px; border-radius:14px; cursor:pointer; transition:.25s; }
-  #tono button.on { opacity:1; }
-  #tono button[data-t=love].on { background:linear-gradient(90deg,var(--rosa),var(--rosa2)); box-shadow:0 8px 22px rgba(244,63,94,.35); }
-  #tono button[data-t=real].on { background:linear-gradient(90deg,var(--violeta),var(--cian)); color:#0a0612; box-shadow:0 8px 22px rgba(56,189,248,.3); }
-
-  #go { width:100%; margin-top:16px; border:0; cursor:pointer; color:#1a0a2e; font-weight:900; font-size:17px;
-    padding:17px; border-radius:18px; background:linear-gradient(90deg,var(--rosa),var(--violeta),var(--cian));
-    background-size:200% auto; box-shadow:0 14px 34px rgba(167,139,250,.4); transition:.25s; animation:brillo 4s linear infinite; }
-  @keyframes brillo { to { background-position:200% center; } }
-  #go:active { transform:scale(.98); }
-  #go:disabled { opacity:.55; cursor:default; animation:none; }
-  #estado { text-align:center; font-size:14px; opacity:.85; min-height:20px; margin-top:14px; font-weight:600; }
-  .heart-load { display:inline-block; animation:lat 1s ease-in-out infinite; }
-
-  footer { margin-top:auto; padding-top:20px; text-align:center; font-size:11.5px; opacity:.45; }
-  input[type=file] { display:none; }
-  .hide { display:none !important; }
-
-  /* ---------- MODAL ---------- */
-  #modal { position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px;
-    background:rgba(5,3,10,.75); backdrop-filter:blur(8px); }
-  #modal.show { display:flex; animation:fade .25s ease; }
-  @keyframes fade { from{opacity:0} to{opacity:1} }
-  #modal .pop { width:100%; max-width:430px; border-radius:28px; overflow:hidden; position:relative;
-    background:linear-gradient(160deg,#1b0f2e,#0a0612); border:1px solid rgba(167,139,250,.35);
-    box-shadow:0 30px 80px rgba(0,0,0,.6); animation:pop .4s cubic-bezier(.2,.85,.2,1.05); }
-  @keyframes pop { from{opacity:0; transform:translateY(20px) scale(.95)} to{opacity:1; transform:none} }
-  #cerrar { position:absolute; top:12px; right:12px; z-index:3; width:36px; height:36px; border-radius:50%; border:0;
-    background:rgba(0,0,0,.45); color:#fff; font-size:18px; cursor:pointer; }
-  #m-foto-wrap { position:relative; height:300px; }
-  #m-foto { width:100%; height:100%; object-fit:cover; display:block; }
-  #m-foto-wrap::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%, #15092600 0%, #1b0f2e 100%); }
-  /* badge puntaje */
-  #m-score { position:absolute; right:18px; bottom:-34px; z-index:4; width:88px; height:88px; border-radius:50%;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:900;
-    background:#0a0612; box-shadow:0 8px 24px rgba(0,0,0,.5); border:3px solid var(--rosa); }
-  #m-score b { font-size:26px; line-height:1; }
-  #m-score small { font-size:9px; opacity:.6; letter-spacing:1px; margin-top:2px; }
-  #m-body { padding:46px 22px 22px; }
-  #m-tag { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.5px; padding:5px 12px; border-radius:999px; margin-bottom:12px; }
-  #m-tag.love { background:rgba(244,63,94,.18); color:#fda4c0; border:1px solid rgba(244,63,94,.4); }
-  #m-tag.real { background:rgba(56,189,248,.16); color:#a5e8ff; border:1px solid rgba(56,189,248,.4); }
-  #m-texto { font-size:19px; line-height:1.55; font-weight:500; min-height:60px; }
-  #m-texto .cursor { display:inline-block; width:2px; height:1.05em; background:var(--rosa); vertical-align:-2px; animation:parp .7s steps(1) infinite; }
-  @keyframes parp { 50%{opacity:0} }
-  #m-firma { margin-top:14px; font-size:12px; opacity:.55; }
-  #m-acc { display:flex; gap:10px; margin-top:20px; }
-  #m-acc button { flex:1; border:0; cursor:pointer; font-weight:800; font-size:15px; padding:14px; border-radius:15px; }
-  #m-share { color:#1a0a2e; background:linear-gradient(90deg,var(--rosa),var(--violeta)); box-shadow:0 10px 26px rgba(167,139,250,.35); }
-  #m-otra { color:var(--texto); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18) !important; }
-  #m-acc button:active { transform:scale(.97); }
-</style>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <div class="bg-hearts" id="hearts"></div>
+
 <div id="app">
   <header>
     <div class="logo">Novaflow</div>
     <h1>💘 Cupido IA</h1>
-    <p>Sube tu foto: te enamoro… o te digo la verdad sin filtros 😏</p>
+    <p id="sub"></p>
   </header>
 
   <div id="zona" class="card">
     <img id="foto" alt="tu foto" />
     <div id="ph">
       <div class="em">📸</div>
-      <p>Toca para tomar o subir tu foto</p>
+      <p>Toma o sube tu foto</p>
       <small>La magia empieza aquí</small>
     </div>
     <div class="glow"></div>
+  </div>
+
+  <div class="foto-btns">
+    <button id="btn-cam">📸 Tomar foto</button>
+    <button id="btn-gal">🖼️ Galería</button>
   </div>
 
   <div id="tono">
@@ -124,7 +42,7 @@
   <button id="go" disabled>Elige una foto primero</button>
   <div id="estado"></div>
 
-  <footer>Hecho con 💜 por Novaflow · La IA opina en broma, no te lo tomes a pecho 😉</footer>
+  <footer>Creado por <b>Jose F.</b> · Automatizado con IA 🤖 · <b>Novaflow</b></footer>
 </div>
 
 <!-- MODAL RESULTADO -->
@@ -147,131 +65,10 @@
   </div>
 </div>
 
-<input type="file" id="file" accept="image/*" />
+<input type="file" id="file-cam" accept="image/*" capture="environment" />
+<input type="file" id="file-gal" accept="image/*" />
 <canvas id="lienzo" style="display:none"></canvas>
 
-<script>
-const $ = (id) => document.getElementById(id);
-let tono = 'love';
-let imagen = null;
-let ultimo = { texto:'', puntaje:null, tono:'love' };
-
-// Corazones de fondo
-(function(){ const c=$('hearts'); const ems=['💖','💘','💕','💗','✨','💋'];
-  for(let i=0;i<14;i++){ const s=document.createElement('span'); s.textContent=ems[i%ems.length];
-    s.style.left=Math.random()*100+'%'; s.style.fontSize=(14+Math.random()*22)+'px';
-    s.style.animationDuration=(8+Math.random()*10)+'s'; s.style.animationDelay=(-Math.random()*15)+'s'; c.appendChild(s);} })();
-
-$('tono').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return;
-  tono=b.dataset.t; document.querySelectorAll('#tono button').forEach(x=>x.classList.toggle('on',x===b));
-  if(imagen) $('go').textContent = tono==='love'?'💘 ¡Enamórame!':'😏 Dame la verdad'; });
-
-$('zona').addEventListener('click', ()=> $('file').click());
-$('m-otra').addEventListener('click', ()=>{ cerrarModal(); $('file').click(); });
-$('file').addEventListener('change', e=>{ if(e.target.files[0]) cargar(e.target.files[0]); e.target.value=''; });
-
-async function cargar(file){
-  const url=URL.createObjectURL(file); const img=new Image(); img.src=url; await img.decode();
-  const maxL=768; let w=img.naturalWidth,h=img.naturalHeight; const s=Math.min(1,maxL/Math.max(w,h));
-  w=Math.round(w*s); h=Math.round(h*s); const c=document.createElement('canvas'); c.width=w; c.height=h;
-  c.getContext('2d').drawImage(img,0,0,w,h); imagen=c.toDataURL('image/jpeg',0.85); URL.revokeObjectURL(url);
-  $('foto').src=imagen; $('foto').style.display='block'; $('ph').style.display='none'; $('zona').classList.add('tiene');
-  $('go').disabled=false; $('go').textContent = tono==='love'?'💘 ¡Enamórame!':'😏 Dame la verdad';
-}
-
-$('go').addEventListener('click', analizar);
-async function analizar(){
-  if(!imagen) return;
-  $('go').disabled=true;
-  $('estado').innerHTML = (tono==='love'?'Cupido te está admirando ':'Cupido te está midiendo ')+'<span class="heart-load">💓</span>';
-  try{
-    const r = await fetch('/api/piropo',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ image:imagen, tono }) });
-    const data = await r.json();
-    if(!r.ok || data.error) throw new Error(data.error || ('HTTP '+r.status));
-    ultimo = { texto:data.texto, puntaje:data.puntaje, tono };
-    $('estado').textContent='';
-    abrirModal();
-  }catch(e){ $('estado').textContent='😅 '+e.message; }
-  $('go').disabled=false;
-}
-
-// ---------- MODAL ----------
-function colorScore(p){ if(p==null) return '#a78bfa'; if(p>=8) return '#34d399'; if(p>=6) return '#38bdf8'; if(p>=4) return '#fb923c'; return '#f43f5e'; }
-function abrirModal(){
-  $('m-foto').src = imagen;
-  const tag = $('m-tag'); tag.className = ultimo.tono; tag.textContent = ultimo.tono==='love'?'💘 MODO ENAMORAR':'😏 SIN FILTROS';
-  const col = colorScore(ultimo.puntaje);
-  $('m-score').style.borderColor = col; $('m-score-n').style.color = col;
-  $('modal').classList.add('show');
-  // animar puntaje
-  const fin = ultimo.puntaje==null ? null : ultimo.puntaje;
-  if(fin==null){ $('m-score-n').textContent='—'; } else { let v=0; const step=()=>{ v+=fin/22; if(v>=fin){ $('m-score-n').textContent=fin.toFixed(1);} else { $('m-score-n').textContent=v.toFixed(1); requestAnimationFrame(step);} }; step(); }
-  // typing
-  const cont=$('m-texto'); cont.innerHTML='<span id="tt"></span><span class="cursor"></span>';
-  const tt=$('tt'); const txt=ultimo.texto; let i=0;
-  (function paso(){ if(i<=txt.length){ tt.textContent=txt.slice(0,i); i++; setTimeout(paso,20);} else { const cu=cont.querySelector('.cursor'); if(cu) cu.style.display='none'; } })();
-}
-function cerrarModal(){ $('modal').classList.remove('show'); }
-$('cerrar').addEventListener('click', cerrarModal);
-$('modal').addEventListener('click', e=>{ if(e.target.id==='modal') cerrarModal(); });
-
-// ---------- TARJETA COMPARTIBLE ----------
-function dibujarCover(ctx,img,x,y,w,h){ const ir=img.width/img.height, rr=w/h; let sw,sh,sx,sy;
-  if(ir>rr){ sh=img.height; sw=sh*rr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/rr; sx=0; sy=(img.height-sh)/2; }
-  ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h); }
-function wrap(ctx,txt,maxW){ const words=txt.split(' '); const lines=[]; let line='';
-  for(const w of words){ const t=line?line+' '+w:w; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=w;} else line=t; }
-  if(line) lines.push(line); return lines; }
-
-async function generarTarjeta(){
-  const W=1080,H=1350; const cv=$('lienzo'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
-  // fondo
-  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#2a0f3d'); g.addColorStop(.55,'#1b0f2e'); g.addColorStop(1,'#0a0612');
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  // titulo
-  ctx.textAlign='left'; ctx.fillStyle='#f3e8ff'; ctx.font='800 34px system-ui,sans-serif';
-  ctx.fillText('💘 Cupido IA', 60, 80);
-  ctx.fillStyle='rgba(243,232,255,.55)'; ctx.font='600 20px system-ui,sans-serif'; ctx.fillText('NOVAFLOW', 60, 110);
-  // foto
-  const img=new Image(); img.src=imagen; await img.decode();
-  const fx=60,fy=140,fw=W-120,fh=620; ctx.save();
-  if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(fx,fy,fw,fh,28); ctx.clip(); } else { ctx.beginPath(); ctx.rect(fx,fy,fw,fh); ctx.clip(); }
-  dibujarCover(ctx,img,fx,fy,fw,fh); ctx.restore();
-  // badge puntaje
-  const p=ultimo.puntaje; const col=colorScore(p);
-  const cx=W-150, cy=fy+fh-40, r=80;
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0a0612'; ctx.fill(); ctx.lineWidth=8; ctx.strokeStyle=col; ctx.stroke();
-  ctx.textAlign='center'; ctx.fillStyle=col; ctx.font='900 50px system-ui,sans-serif'; ctx.fillText(p==null?'—':p.toFixed(1), cx, cy+8);
-  ctx.fillStyle='rgba(243,232,255,.6)'; ctx.font='700 18px system-ui,sans-serif'; ctx.fillText('/ 10', cx, cy+38);
-  // tag tono
-  ctx.textAlign='left'; const tg=ultimo.tono==='love'?'💘 MODO ENAMORAR':'😏 SIN FILTROS';
-  ctx.fillStyle=ultimo.tono==='love'?'#fda4c0':'#a5e8ff'; ctx.font='800 24px system-ui,sans-serif'; ctx.fillText(tg, 60, 830);
-  // texto
-  ctx.fillStyle='#f3e8ff'; ctx.font='500 38px system-ui,sans-serif';
-  const lines=wrap(ctx, '“'+ultimo.texto+'”', W-120); let ty=890;
-  for(const ln of lines){ ctx.fillText(ln, 60, ty); ty+=52; }
-  // firma
-  ctx.fillStyle='rgba(243,232,255,.5)'; ctx.font='600 24px system-ui,sans-serif'; ctx.textAlign='center';
-  ctx.fillText('cupido-seven.vercel.app', W/2, H-50);
-  return new Promise(res=> cv.toBlob(res,'image/png',0.95));
-}
-
-$('m-share').addEventListener('click', async ()=>{
-  $('m-share').textContent='⏳...';
-  try{
-    const blob = await generarTarjeta();
-    const file = new File([blob], 'cupido-ia.png', { type:'image/png' });
-    const texto = `Cupido IA me dio ${ultimo.puntaje!=null?ultimo.puntaje.toFixed(1)+'/10':''}: "${ultimo.texto}"`;
-    if(navigator.canShare && navigator.canShare({ files:[file] })){
-      await navigator.share({ files:[file], text:texto, title:'Cupido IA 💘' });
-    } else {
-      // descargar + copiar
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='cupido-ia.png'; a.click();
-      try{ await navigator.clipboard.writeText(texto+' · '+location.href); }catch(_){}
-    }
-  }catch(e){ alert('No se pudo compartir: '+e.message); }
-  $('m-share').textContent='📤 Compartir';
-});
-</script>
+<script src="app.js"></script>
 </body>
 </html>
