@@ -17,7 +17,7 @@ const COSTENO = `\n\nVOZ Y ACENTO (LO MÁS IMPORTANTE): Hablas como una PERSONA 
 Tu repertorio (con medida, solo si fluye): vocativos "mani", "primo/prima", "llave", "mi'jo/mija", "ombe"; exclamaciones "ajá", "erda", "nojoda", "eche", "¡qué nota!"; sabor "bacano", "cipote", "una nota", "sabroso/a"; recortes "pa'", "na'", "'tas", "to'". Coquetear es "echarle los perros".
 REGLA DE ORO: que suene a un costeño real conversando, COHERENTE y creíble, con flow caribeño natural — primero humano, luego el acento. Nada de groserías pesadas.`;
 
-const FORMATO = `\n\nResponde ÚNICAMENTE con un objeto JSON válido (sin texto extra, sin markdown) con esta forma exacta:\n{"puntaje": <número del 1.0 al 10.0 con UN decimal>, "texto": "<tu veredicto/piropo en costeño>"}`;
+const FORMATO = `\n\nResponde ÚNICAMENTE con un objeto JSON válido (sin texto extra, sin markdown) con esta forma exacta:\n{"puntaje": <número del 1.0 al 10.0 con UN decimal>, "texto": "<tu veredicto/piropo>"}`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Método no permitido' }); return; }
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   try {
     const { image, tono } = req.body || {};
     if (!image) { res.status(400).json({ error: 'No llegó la imagen.' }); return; }
-    const sys = (PROMPTS[tono] || PROMPTS.love) + COSTENO + FORMATO;
+    const sys = (PROMPTS[tono] || PROMPTS.love) + FORMATO;
     const userText = tono === 'real'
       ? 'Mírame y dame tu veredicto sin filtros (y mi puntaje honesto) 😏'
       : 'Mírame, enamórame y dame mi puntaje 😏';
