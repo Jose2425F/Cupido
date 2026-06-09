@@ -93,44 +93,57 @@ function wrap(ctx,txt,maxW){ const words=txt.split(' '); const lines=[]; let lin
 function rr(ctx,x,y,w,h,r){ if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); } else { ctx.beginPath(); ctx.rect(x,y,w,h); } }
 
 async function generarTarjeta(){
-  const W=1080, pad=60;
+  const W=1080, pad=64;
   const img=new Image(); img.src=imagen; await img.decode();
-  // medir texto
   const cv=$('lienzo'); const ctx=cv.getContext('2d');
-  ctx.font='500 38px system-ui,sans-serif';
-  const lines = wrap(ctx, '“'+ultimo.texto+'”', W-pad*2);
-  // geometría
-  const headerH=150, fotoH=860, gapTag=58, tagH=34, gapText=40, lineH=52, gapFirma=46, footerH=120;
-  const textBlock = lines.length*lineH;
-  const H = headerH + fotoH + gapTag + tagH + gapText + textBlock + gapFirma + footerH;
+  ctx.font='500 40px system-ui,sans-serif';
+  const lines = wrap(ctx, ultimo.texto, W-pad*2-30);
+  // geometría (altura dinámica)
+  const headerH=172, fotoH=880, gapTag=70, tagH=48, gapText=78, lineH=56, gapCred=78, credH=120;
+  const H = headerH + fotoH + gapTag + tagH + gapText + lines.length*lineH + gapCred + credH;
   cv.width=W; cv.height=H;
-  // fondo
-  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#2a0f3d'); g.addColorStop(.5,'#1b0f2e'); g.addColorStop(1,'#0a0612');
+  // fondo + glows
+  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#2c1046'); g.addColorStop(.5,'#1a0e2b'); g.addColorStop(1,'#08040f');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  // header
-  ctx.textAlign='left'; ctx.fillStyle='#f3e8ff'; ctx.font='800 36px system-ui,sans-serif'; ctx.fillText('💘 Cupido IA', pad, 74);
-  ctx.fillStyle='rgba(243,232,255,.55)'; ctx.font='600 20px system-ui,sans-serif'; ctx.fillText('NOVAFLOW', pad, 106);
-  // foto
+  const glow=(x,y,r,c)=>{ const rg=ctx.createRadialGradient(x,y,0,x,y,r); rg.addColorStop(0,c); rg.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=rg; ctx.fillRect(0,0,W,H); };
+  glow(W*0.16, headerH*0.7, 540, 'rgba(244,63,94,0.20)');
+  glow(W*0.92, H*0.55, 620, 'rgba(56,189,248,0.13)');
+  // header con título en gradiente
+  ctx.textAlign='left'; ctx.font='900 48px system-ui,sans-serif';
+  const tgr=ctx.createLinearGradient(pad,0,pad+380,0); tgr.addColorStop(0,'#fb7185'); tgr.addColorStop(.5,'#a78bfa'); tgr.addColorStop(1,'#38bdf8');
+  ctx.fillStyle=tgr; ctx.fillText('💘 Cupido IA', pad, 92);
+  ctx.fillStyle='rgba(243,232,255,.5)'; ctx.font='700 22px system-ui,sans-serif'; ctx.fillText('N O V A F L O W', pad+4, 128);
+  // foto con marco
   const fx=pad, fy=headerH, fw=W-pad*2;
-  ctx.save(); rr(ctx,fx,fy,fw,fotoH,28); ctx.clip(); dibujarCover(ctx,img,fx,fy,fw,fotoH); ctx.restore();
-  // badge puntaje
-  const p=ultimo.puntaje, col=colorScore(p); const cx=W-pad-70, cy=fy+fotoH-50, r=78;
-  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0a0612'; ctx.fill(); ctx.lineWidth=8; ctx.strokeStyle=col; ctx.stroke();
-  ctx.textAlign='center'; ctx.fillStyle=col; ctx.font='900 48px system-ui,sans-serif'; ctx.fillText(p==null?'—':p.toFixed(1), cx, cy+6);
-  ctx.fillStyle='rgba(243,232,255,.6)'; ctx.font='700 18px system-ui,sans-serif'; ctx.fillText('/ 10', cx, cy+36);
-  // tag tono
+  ctx.save(); rr(ctx,fx,fy,fw,fotoH,38); ctx.clip(); dibujarCover(ctx,img,fx,fy,fw,fotoH); ctx.restore();
+  ctx.save(); rr(ctx,fx,fy,fw,fotoH,38); ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.stroke(); ctx.restore();
+  // badge puntaje con anillo de progreso + glow
+  const p=ultimo.puntaje, col=colorScore(p); const cx=W-pad-94, cy=fy+fotoH-94, r=96;
+  ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=34;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0a0612'; ctx.fill(); ctx.restore();
+  ctx.beginPath(); ctx.arc(cx,cy,r-7,0,Math.PI*2); ctx.lineWidth=10; ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.stroke();
+  const frac = p==null?0:Math.max(0,Math.min(1,p/10));
+  ctx.beginPath(); ctx.arc(cx,cy,r-7,-Math.PI/2,-Math.PI/2+frac*Math.PI*2); ctx.lineWidth=10; ctx.lineCap='round'; ctx.strokeStyle=col; ctx.stroke();
+  ctx.textAlign='center'; ctx.fillStyle=col; ctx.font='900 58px system-ui,sans-serif'; ctx.fillText(p==null?'—':p.toFixed(1), cx, cy+10);
+  ctx.fillStyle='rgba(243,232,255,.6)'; ctx.font='700 20px system-ui,sans-serif'; ctx.fillText('/ 10', cx, cy+44);
+  // tag tono (píldora)
   let y = fy+fotoH+gapTag;
-  ctx.textAlign='left'; const tg=ultimo.tono==='love'?'💘 MODO ENAMORAR':'😏 SIN FILTROS';
-  ctx.fillStyle=ultimo.tono==='love'?'#fda4c0':'#a5e8ff'; ctx.font='800 24px system-ui,sans-serif'; ctx.fillText(tg, pad, y);
+  const tag=ultimo.tono==='love'?'💘  MODO ENAMORAR':'😏  SIN FILTROS';
+  ctx.font='800 27px system-ui,sans-serif'; const tw=ctx.measureText(tag).width;
+  const px=pad, py=y-36, pw=tw+46;
+  ctx.fillStyle=ultimo.tono==='love'?'rgba(244,63,94,.18)':'rgba(56,189,248,.16)'; rr(ctx,px,py,pw,tagH,tagH/2); ctx.fill();
+  ctx.lineWidth=2; ctx.strokeStyle=ultimo.tono==='love'?'rgba(244,63,94,.5)':'rgba(56,189,248,.5)'; rr(ctx,px,py,pw,tagH,tagH/2); ctx.stroke();
+  ctx.fillStyle=ultimo.tono==='love'?'#fda4c0':'#a5e8ff'; ctx.textAlign='left'; ctx.fillText(tag, px+23, y);
+  // comilla decorativa
+  y += gapText - 6;
+  ctx.fillStyle='rgba(167,139,250,.22)'; ctx.font='900 130px Georgia,serif'; ctx.fillText('“', pad-8, y+34);
   // texto
-  y += gapText; ctx.fillStyle='#f3e8ff'; ctx.font='500 38px system-ui,sans-serif';
+  ctx.fillStyle='#f3e8ff'; ctx.font='500 40px system-ui,sans-serif';
   for(const ln of lines){ ctx.fillText(ln, pad, y); y+=lineH; }
-  // footer / créditos
-  y += gapFirma;
-  ctx.fillStyle='rgba(243,232,255,.75)'; ctx.font='700 22px system-ui,sans-serif';
-  ctx.fillText('Creado por Jose F. · Automatizado con IA 🤖', pad, y);
-  ctx.fillStyle='rgba(243,232,255,.45)'; ctx.font='600 22px system-ui,sans-serif';
-  ctx.fillText('cupido-seven.vercel.app', pad, y+38);
+  // créditos (sin "Automatizado con IA")
+  y += gapCred-26;
+  ctx.fillStyle='rgba(243,232,255,.88)'; ctx.font='800 28px system-ui,sans-serif'; ctx.fillText('Creado por Jose F. 💜', pad, y);
+  ctx.fillStyle='rgba(243,232,255,.42)'; ctx.font='600 25px system-ui,sans-serif'; ctx.fillText('cupido-seven.vercel.app', pad, y+42);
   return new Promise(res=> cv.toBlob(res,'image/png',0.95));
 }
 
