@@ -152,7 +152,7 @@ $('m-share').addEventListener('click', async ()=>{
   try{
     const blob = await generarTarjeta();
     const file = new File([blob], 'cupido-ia.png', { type:'image/png' });
-    const texto = `Cupido IA me dio ${ultimo.puntaje!=null?ultimo.puntaje.toFixed(1)+'/10':''}: "${ultimo.texto}"`;
+    const texto = `Cupido IA me dio ${ultimo.puntaje!=null?ultimo.puntaje.toFixed(1)+'/10':''}: " y me dijo ${ultimo.texto}"`;
     if(navigator.canShare && navigator.canShare({ files:[file] })){
       await navigator.share({ files:[file], text:texto, title:'Cupido IA 💘' });
     } else {
