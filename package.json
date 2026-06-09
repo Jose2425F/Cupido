@@ -1,0 +1,8 @@
+{
+  "name": "cupido-ia",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cupido IA — sube tu foto y la IA te suelta un piropo (o la verdad). Novaflow.",
+  "engines": { "node": ">=18" }
+}
