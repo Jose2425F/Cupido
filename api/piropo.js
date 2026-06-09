@@ -1,4 +1,4 @@
-// Backend serverless (Vercel). Recibe una foto y devuelve un piropo de la IA.
+// Backend serverless (Vercel). Recibe una foto y devuelve { puntaje, texto }.
 // La llave de Groq vive como variable de entorno SECRETA (GROQ_API_KEY),
 // nunca se expone al navegador.
 
@@ -8,28 +8,24 @@ const MODELOS = [
 ];
 
 const PROMPTS = {
-  love: `Eres "Cupido", el ligón más encantador del universo. Miras la foto de una persona y le sueltas un PIROPO galante, ingenioso y atrevido en español, como si quisieras enamorarla a primera vista. Fíjate en detalles reales (mirada, sonrisa, estilo, actitud, energía) y conviértelos en halagos con chispa, metáforas bonitas y un toque pícaro pero respetuoso. Habla directo a la persona ("tú"). 2 o 3 frases con mucho flow. Usa 1 o 2 emojis. Nada de descripciones técnicas: reacciona como quien quedó flechado. Si en la foto no hay una persona, coquetea con humor sobre lo que veas.`,
-  real: `Eres "Cupido" en modo SIN FILTROS y pícaro. Miras la foto y das tu veredicto honesto con mucha actitud y humor travieso, en español. Si la persona se ve bien, suéltale un halago caliente y sincero que la haga sonrojar. Si algo no te convence (la pose, la luz, el outfit, la actitud), lánzale una PULLA divertida y con sarcasmo simpático, sin pelos en la lengua, PERO sin crueldad real ni insultos al físico: es humor coqueto y juguetón, no bullying. Habla directo a la persona ("tú"). 2 o 3 frases con punch. Usa 1 o 2 emojis. Si no hay persona, búrlate con cariño de lo que veas.`,
+  love: `Eres "Cupido", un seductor irresistible y poético. Miras la foto de una persona y le sueltas un piropo ROMÁNTICO y ATREVIDO en español que la derrita: galante, sensual con clase, lleno de pasión, con metáforas bonitas y un punto pícaro y caliente (sin ser vulgar). Hazla sentir la persona más deseable del planeta. Fíjate en detalles reales (mirada, sonrisa, labios, estilo, actitud, energía) y conviértelos en fuego. Habla directo a la persona ("tú"). 2 o 3 frases intensas con mucho flow. 1 o 2 emojis. Si en la foto no hay una persona, seduce con humor lo que veas. El puntaje debe ser generoso y acorde a lo deslumbrante que se vea.`,
+  real: `Eres "Cupido" en modo SIN FILTROS: brutalmente honesto y con la lengua más afilada, en español. Di la VERDAD sin azúcar. Si la persona se ve increíble, díselo caliente y sin tapujos. Si algo no funciona (la actitud, el ángulo, la luz, el outfit, la pose, lo creída/o que parece, la cara de pocos amigos), suéltaselo CLARO, directo y transparente: dile lo que NO quiere oír. Tu filo es el INGENIO y el sarcasmo inteligente, NO la vulgaridad ni el odio: prohibido el lenguaje degradante, los insultos crueles a rasgos físicos o el bullying. Picas con clase, no con grosería barata. Habla directo a la persona ("tú"). 2 o 3 frases con punch. 1 o 2 emojis. Si no hay persona, dispara tu sarcasmo a lo que veas. El puntaje debe ser 100% honesto, sin regalar nada.`,
 };
 
+const FORMATO = `\n\nResponde ÚNICAMENTE con un objeto JSON válido (sin texto extra, sin markdown) con esta forma exacta:\n{"puntaje": <número del 1.0 al 10.0 con UN decimal>, "texto": "<tu veredicto/piropo>"}`;
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Método no permitido' });
-    return;
-  }
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Método no permitido' }); return; }
   const key = process.env.GROQ_API_KEY;
-  if (!key) {
-    res.status(500).json({ error: 'Falta configurar GROQ_API_KEY en Vercel.' });
-    return;
-  }
+  if (!key) { res.status(500).json({ error: 'Falta configurar GROQ_API_KEY en Vercel.' }); return; }
 
   try {
     const { image, tono } = req.body || {};
     if (!image) { res.status(400).json({ error: 'No llegó la imagen.' }); return; }
-    const sys = PROMPTS[tono] || PROMPTS.love;
+    const sys = (PROMPTS[tono] || PROMPTS.love) + FORMATO;
     const userText = tono === 'real'
-      ? 'Mírame y dime la verdad sin filtros (pero con gracia) 😏'
-      : 'Mírame y enamórame con un buen piropo 😏';
+      ? 'Mírame y dame tu veredicto sin filtros (y mi puntaje honesto) 😏'
+      : 'Mírame, enamórame y dame mi puntaje 😏';
 
     let ultimoError = '';
     for (const model of MODELOS) {
@@ -45,19 +41,26 @@ export default async function handler(req, res) {
               { type: 'image_url', image_url: { url: image } },
             ] },
           ],
-          max_tokens: 220,
-          temperature: 1.0,
+          max_tokens: 300,
+          temperature: 1.05,
+          response_format: { type: 'json_object' },
         }),
       });
 
-      if (!r.ok) {
-        ultimoError = `${r.status} ${(await r.text()).slice(0, 200)}`;
-        continue; // prueba el siguiente modelo
-      }
+      if (!r.ok) { ultimoError = `${r.status} ${(await r.text()).slice(0, 200)}`; continue; }
       const data = await r.json();
-      const texto = data.choices?.[0]?.message?.content?.trim();
-      if (texto) { res.status(200).json({ texto, modelo: model }); return; }
-      ultimoError = 'respuesta vacía';
+      const raw = data.choices?.[0]?.message?.content?.trim();
+      if (!raw) { ultimoError = 'respuesta vacía'; continue; }
+
+      let texto = raw, puntaje = null;
+      try {
+        const j = JSON.parse(raw);
+        if (j.texto) texto = String(j.texto).trim();
+        if (j.puntaje != null) { const n = parseFloat(j.puntaje); if (!isNaN(n)) puntaje = Math.max(1, Math.min(10, n)); }
+      } catch (_) { /* si no es JSON, usamos el texto crudo */ }
+
+      res.status(200).json({ texto, puntaje, modelo: model });
+      return;
     }
     res.status(502).json({ error: 'La IA no respondió. ' + ultimoError });
   } catch (e) {
