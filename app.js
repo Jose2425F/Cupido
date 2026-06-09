@@ -112,7 +112,7 @@ async function generarTarjeta(){
   ctx.textAlign='left'; ctx.font='900 48px system-ui,sans-serif';
   const tgr=ctx.createLinearGradient(pad,0,pad+380,0); tgr.addColorStop(0,'#fb7185'); tgr.addColorStop(.5,'#a78bfa'); tgr.addColorStop(1,'#38bdf8');
   ctx.fillStyle=tgr; ctx.fillText('💘 Cupido IA', pad, 92);
-  ctx.fillStyle='rgba(243,232,255,.5)'; ctx.font='700 22px system-ui,sans-serif'; ctx.fillText('N O V A F L O W', pad+4, 128);
+  ctx.fillStyle='rgba(243,232,255,.5)'; ctx.font='700 22px system-ui,sans-serif'; ctx.fillText('J O S E  F .', pad+4, 128);
   // foto con marco
   const fx=pad, fy=headerH, fw=W-pad*2;
   ctx.save(); rr(ctx,fx,fy,fw,fotoH,38); ctx.clip(); dibujarCover(ctx,img,fx,fy,fw,fotoH); ctx.restore();
